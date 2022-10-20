@@ -1,0 +1,5 @@
+# wasm_executor extension
+comment = 'wasm runtime executor for opengauss based on wasmtime'
+default_version = '1.0'
+module_pathname = '$libdir/wasm_executor'
+relocatable = true
