@@ -6,6 +6,7 @@ set -e
 echo "Initing openGauss..."
 
 source /home/opengauss/.bashrc
+source /home/opengauss/.wasmedge/env
 
 source ~/.bashrc && gs_initdb -D /home/opengauss/openGauss/data/ -w "openGauss2022" -E utf8  --nodename=datanode 
 sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/g"   /home/opengauss/openGauss/data/postgresql.conf

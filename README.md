@@ -1,12 +1,12 @@
-A complete and mature WebAssembly runtime for openGauss based on [Wasmtime](https://wasmtime.dev/).
+A complete and mature WebAssembly runtime for openGauss based on [WasmEdge](https://wasmedge.org/book/zh/index.html).
 It's an original way to extend your favorite database capabilities.
 
 > Note This project is inspired by [wasmer-postgres](https://github.com/wasmerio/wasmer-postgres)
 
 Features:
 
-  * **Easy to use**: The `wasmtime` API mimics the standard WebAssembly API,
-  * **Fast**: `wasmtime` executes the WebAssembly modules as fast as
+  * **Easy to use**: The `wasmedge` API mimics the standard WebAssembly API,
+  * **Fast**: `wasmedge` executes the WebAssembly modules as fast as
     possible, close to **native speed**,
   * **Safe**: All calls to WebAssembly will be fast, but more
     importantly, completely safe and sandboxed.
@@ -22,11 +22,13 @@ The project comes in two parts:
   1. A shared library, and
   2. A PL/pgSQL extension.
   
-To compile the former, the wasmtime-c-api header files are required. 
-You can download the header file from [here](https://github.com/bytecodealliance/wasmtime/releases).
+To compile the former, the wasmedge should have been installed. 
+You can install the wasmedge as simple as 
+
+Refer to [https://wasmedge.org/book/en/quick_start/install.html](https://wasmedge.org/book/en/quick_start/install.html) for more details.
 
 After that, run `CREATE EXTENSION wasm_executor` in a
-openGauss shell. Two new functions will appear: `wasm_new_instance` and `wasm_new_instance_wat`; They must be
+openGauss shell. One new function will appear: `wasm_new_instance`; It must be
 called with the absolute path to the shared library. It looks like
 this:
 
@@ -34,7 +36,7 @@ this:
 $ # Build the shared library.
 $ make
 
-$ # Install the extension in the Postgres opengauss
+$ # Install the extension in the opengauss
 $ make install
 
 $ # Activate and initialize the extension.
@@ -120,11 +122,11 @@ To get your hands on openGauss with wasm, we recommend using the Docker image.
 Download the docker image firstlly.
 
 ```shell
-docker pull heguofeng/opengauss-wasm:1.0.0
+docker pull opengaussofficial/opengauss-wasmedge:0.1.0
 ```
 Then run it.
 ```shell
-docker run -it heguofeng/opengauss-wasm:1.0.0 bash
+docker run -it opengaussofficial/opengauss-wasmedge:0.1.0 bash
 ```
 And enjoy it.
 
@@ -133,8 +135,7 @@ And enjoy it.
 
 The extension provides two ways to initilize a WebAssembly instance. As you can
 see from the functions name show above, one way is to use `wasm_new_instance` from
-.wasm file compiled from other languages, the other way is to use `wasm_new_instance_wat`
-from .wat file, which is the text format of wasm.
+.wasm file compiled from other languages.
 
 And, the extension provides two tables, gathered together in
 the `wasm` foreign schema:
@@ -145,8 +146,8 @@ the `wasm` foreign schema:
   * `wasm.exported_functions` is a table with the `instanceid`,
     `funcname`, `inputs` and `output` columns, respectively for the
     instance ID of the exported function, its name, its input types
-    (already formatted for Postgres), and its output types (already
-    formatted for Postgres).
+    (already formatted for openGauss), and its output types (already
+    formatted for openGauss).
 
 Let's see:
 
@@ -156,8 +157,7 @@ SELECT * FROM wasm.instances;
 
 --      id        |          wasm_file
 -- ---------------+-------------------------------
---  3160787445    | /absolute/path/to/sum.wasm
---  1311091567    | /absolute/path/to/gcd.wat
+--  2785875771    | /absolute/path/to/sum.wasm
 -- (1 row)
 
 -- Select all exported functions for a specific instance.
@@ -168,7 +168,7 @@ SELECT
 FROM
     wasm.exported_functions
 WHERE
-    instanceid = 3160787445;
+    instanceid = 2785875771;
 
 --   name  |     inputs      | outputs
 -- --------+-----------------+---------
@@ -196,35 +196,35 @@ at any time, but it shows promising results:
     <tr>
       <td rowspan="2">Fibonacci (n = 50)</td>
       <td><code>openGauss-wasm-executor</code></td>
-      <td align="right">0.206</td>
+      <td align="right">0.765</td>
       <td align="right">1×</td>
     </tr>
     <tr>
       <td>PL/pgSQL</td>
-      <td align="right">0.431</td>
+      <td align="right">1.714</td>
       <td align="right">2×</td>
     </tr>
     <tr>
       <td rowspan="2">Fibonacci (n = 500)</td>
       <td><code>openGauss-wasm-executor</code></td>
-      <td align="right">0.217</td>
+      <td align="right">0.794</td>
       <td align="right">1×</td>
     </tr>
     <tr>
       <td>PL/pgSQL</td>
-      <td align="right">2.189</td>
-      <td align="right">10×</td>
+      <td align="right">9.746</td>
+      <td align="right">12×</td>
     </tr>
     <tr>
       <td rowspan="2">Fibonacci (n = 5000)</td>
       <td><code>openGauss-wasm-executor</code></td>
-      <td align="right">0.257</td>
+      <td align="right">0.820</td>
       <td align="right">1×</td>
     </tr>
     <tr>
       <td>PL/pgSQL</td>
-      <td align="right">18.643</td>
-      <td align="right">73×</td>
+      <td align="right">92.720</td>
+      <td align="right">113×</td>
     </tr>
   </tbody>
 </table>
